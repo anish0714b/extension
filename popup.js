@@ -234,3 +234,74 @@ function state_isNewDesign() {
 function state_isRoundedDesign() {
   return querySelector(state_extConfig.selectors.roundedDesign) !== null;
 }
+
+
+let shortsObserver = null;
+
+if (state_isShorts() && !shortsObserver) {
+  utils_cLog("Initializing shorts mutation observer");
+  shortsObserver = createObserver(
+    {
+      attributes: true,
+    },
+    (mutationList) => {
+      mutationList.forEach((mutation) => {
+        if (
+          mutation.type === "attributes" &&
+          mutation.target.nodeName === "TP-YT-PAPER-BUTTON" &&
+          mutation.target.id === "button"
+        ) {
+          // cLog('Short thumb button status changed');
+          if (mutation.target.getAttribute("aria-pressed") === "true") {
+            mutation.target.style.color =
+              mutation.target.parentElement.parentElement.id === "like-button"
+                ? utils_getColorFromTheme(true)
+                : utils_getColorFromTheme(false);
+          } else {
+            mutation.target.style.color = "unset";
+          }
+          return;
+        }
+        utils_cLog("Unexpected mutation observer event: " + mutation.target + mutation.type);
+      });
+    },
+  );
+}
+
+function state_isLikesDisabled() {
+  // return true if the like button's text doesn't contain any number
+  if (state_isMobile()) {
+    return /^\D*$/.test(getButtons().children[0].querySelector(".button-renderer-text").innerText);
+  }
+  return /^\D*$/.test(getLikeTextContainer().innerText);
+}
+
+function isVideoLiked() {
+  if (state_isMobile()) {
+    return getLikeButton().querySelector("button").getAttribute("aria-label") === "true";
+  }
+  return (
+    getLikeButton().classList.contains("style-default-active") ||
+    getLikeButton().querySelector("button")?.getAttribute("aria-pressed") === "true"
+  );
+}
+
+function isVideoDisliked() {
+  if (state_isMobile()) {
+    return getDislikeButton().querySelector("button").getAttribute("aria-label") === "true";
+  }
+  return (
+    getDislikeButton().classList.contains("style-default-active") ||
+    getDislikeButton().querySelector("button")?.getAttribute("aria-pressed") === "true"
+  );
+}
+
+function getState(storedData) {
+  if (isVideoLiked()) {
+    return { current: LIKED_STATE, previous: storedData.previousState };
+  }
+  if (isVideoDisliked()) {
+    return { current: DISLIKED_STATE, previous: storedData.previousState };
+  }
+  return { current: NEUTRAL_STATE, previous: storedData.previousState };
+}
