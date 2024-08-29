@@ -375,4 +375,75 @@ function processResponse(response, storedData) {
     }
   }
 }
+function displayError(error) {
+  getDislikeTextContainer().innerText = localize("textTempUnavailable");
+}
+
+async function setState(storedData) {
+  storedData.previousState = isVideoDisliked() ? DISLIKED_STATE : isVideoLiked() ? LIKED_STATE : NEUTRAL_STATE;
+  let statsSet = false;
+  cLog("Video is loaded. Adding buttons...");
+
+  let videoId = getVideoId(window.location.href);
+  let likeCount = getLikeCountFromButton() || null;
+
+  let response = await fetch(`${apiUrl}/votes?videoId=${videoId}&likeCount=${likeCount || ""}`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+  })
+    .then((response) => {
+      if (!response.ok) displayError(response.error);
+      return response;
+    })
+    .then((response) => response.json())
+    .catch(displayError);
+  cLog("response from api:");
+  cLog(JSON.stringify(response));
+  if (response !== undefined && !("traceId" in response) && !statsSet) {
+    processResponse(response, storedData);
+  }
+}
+
+async function setInitialState() {
+  await setState(storedData);
+}
+
+async function initExtConfig() {
+  initializeDisableVoteSubmission();
+  initializeDisableLogging();
+  initializeColoredThumbs();
+  initializeColoredBar();
+  initializeColorTheme();
+  initializeNumberDisplayFormat();
+  initializeTooltipPercentage();
+  initializeTooltipPercentageMode();
+  initializeNumberDisplayReformatLikes();
+  await initializeSelectors();
+}
+
+async function initializeSelectors() {
+  console.log("initializing selectors");
+  let result = await fetch(`${apiUrl}/configs/selectors`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .catch((error) => {});
+  state_extConfig.selectors = result ?? state_extConfig.selectors;
+  console.log(result);
+}
+
+function initializeDisableVoteSubmission() {
+  getBrowser().storage.sync.get(["disableVoteSubmission"], (res) => {
+    if (res.disableVoteSubmission === undefined) {
+      getBrowser().storage.sync.set({ disableVoteSubmission: false });
+    } else {
+      state_extConfig.disableVoteSubmission = res.disableVoteSubmission;
+    }
+  });
+}
 
