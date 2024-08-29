@@ -124,27 +124,63 @@ function getShareCount() {
     const shareTextContainer = querySelector(extConfig.selectors.shareTextContainer, buttons_getShareButton());
     return shareTextContainer ? shareTextContainer.innerText : null;
 }
-function isUserSubscribed() {
-    const subscribeButton = buttons_getSubscribeButton();
-    return subscribeButton ? subscribeButton.classList.contains('subscribed') : false;
-}
-buttons_getLikeButton().addEventListener('click', () => {
-    console.log('Like button clicked');
-});
-buttons_getDislikeButton().addEventListener('click', () => {
-    console.log('Dislike button clicked');
-});
-
-buttons_getShareButton().addEventListener('click', () => {
-    console.log('Share button clicked');
-});
-buttons_getSubscribeButton().addEventListener('click', () => {
-    console.log('Subscribe button clicked');
-});
-document.addEventListener('scroll', () => {
-    const commentSection = buttons_getCommentSection();
-    if (commentSection && isInViewport(commentSection)) {
-        console.log('Comment section in view');
+function createDislikeTextContainer() {
+  const textNodeClone = (
+    buttons_getLikeButton().querySelector(
+      ".yt-spec-button-shape-next__button-text-content",
+    ) ||
+    buttons_getLikeButton().querySelector("button > div[class*='cbox']") ||
+    (
+      buttons_getLikeButton().querySelector('div > span[role="text"]') ||
+      document.querySelector(
+        'button > div.yt-spec-button-shape-next__button-text-content > span[role="text"]',
+      )
+    ).parentNode
+  ).cloneNode(true);
+  const insertPreChild = buttons_getDislikeButton().querySelector("button");
+  insertPreChild.insertBefore(textNodeClone, null);
+  buttons_getDislikeButton()
+    .querySelector("button")
+    .classList.remove("yt-spec-button-shape-next--icon-button");
+  buttons_getDislikeButton()
+    .querySelector("button")
+    .classList.add("yt-spec-button-shape-next--icon-leading");
+  if (textNodeClone.querySelector("span[role='text']") === null) {
+    const span = document.createElement("span");
+    span.setAttribute("role", "text");
+    while (textNodeClone.firstChild) {
+      textNodeClone.removeChild(textNodeClone.firstChild);
     }
-});
+    textNodeClone.appendChild(span);
+  }
+  textNodeClone.innerText = "";
+  return textNodeClone;
+}
+
+function buttons_getDislikeTextContainer() {
+  let result;
+  for (const selector of extConfig.selectors.dislikeTextContainer) {
+    result = buttons_getDislikeButton().querySelector(selector);
+    if (result !== null) {
+      break;
+    }
+  }
+  if (result == null) {
+    result = createDislikeTextContainer();
+  }
+  return result;
+}
+
+function checkForSignInButton() {
+  if (
+    document.querySelector(
+      "a[href^='https://accounts.google.com/ServiceLogin']",
+    )
+  ) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 })();
