@@ -53,6 +53,10 @@ function buttons_getDislikeButton() {
             );
 }
 
+function isElementVisible(element) {
+    return element.offsetParent !== null;
+}
+
 function buttons_clickLikeButton() {
     const likeButton = buttons_getLikeButton();
     if (likeButton && isElementVisible(likeButton)) {
@@ -69,20 +73,6 @@ function buttons_clickDislikeButton() {
 
 function buttons_getLikeTextContainer() {
     return querySelector(extConfig.selectors.likeTextContainer, buttons_getLikeButton());
-}
-
-function buttons_getDislikeTextContainer() {
-    let result;
-    for (const selector of extConfig.selectors.dislikeTextContainer) {
-        result = buttons_getDislikeButton().querySelector(selector);
-        if (result !== null) {
-            break;
-        }
-    }
-    if (result == null) {
-        result = createDislikeTextContainer();
-    }
-    return result;
 }
 
 function createDislikeTextContainer() {
@@ -108,80 +98,73 @@ function createDislikeTextContainer() {
     return textNodeClone;
 }
 
+function buttons_getDislikeTextContainer() {
+    let result;
+    for (const selector of extConfig.selectors.dislikeTextContainer) {
+        result = buttons_getDislikeButton().querySelector(selector);
+        if (result !== null) {
+            break;
+        }
+    }
+    if (result == null) {
+        result = createDislikeTextContainer();
+    }
+    return result;
+}
+
 function checkForSignInButton() {
     return !!document.querySelector("a[href^='https://accounts.google.com/ServiceLogin']");
 }
-        if (!isShorts()) {
-      if (!rateBar && !isMobile()) {
-        let colorLikeStyle = "";
-        let colorDislikeStyle = "";
-        if (extConfig.coloredBar) {
-          colorLikeStyle = "; background-color: " + getColorFromTheme(true);
-          colorDislikeStyle = "; background-color: " + getColorFromTheme(false);
-        }
-        let actions =
-          isNewDesign() && getButtons().id === "top-level-buttons-computed"
+
+function createLikeDislikeRatioBar(likes, dislikes) {
+    if (!isShorts() && !isMobile()) {
+        const colorLikeStyle = extConfig.coloredBar ? `; background-color: ${getColorFromTheme(true)}` : "";
+        const colorDislikeStyle = extConfig.coloredBar ? `; background-color: ${getColorFromTheme(false)}` : "";
+        const widthPx = parseFloat(window.getComputedStyle(getLikeButton()).width) +
+            parseFloat(window.getComputedStyle(getDislikeButton()).width) + 8;
+        const widthPercent = likes + dislikes > 0 ? (likes / (likes + dislikes)) * 100 : 50;
+
+        let actions = isNewDesign() && getButtons().id === "top-level-buttons-computed"
             ? getButtons()
             : document.getElementById("menu-container");
-        (
-          actions ||
-          document.querySelector("ytm-slim-video-action-bar-renderer")
-        ).insertAdjacentHTML(
-          "beforeend",
-          `
-              <div class="ryd-tooltip ryd-tooltip-${isNewDesign() ? "new" : "old"}-design" style="width: ${widthPx}px">
-              <div class="ryd-tooltip-bar-container">
-                <div
-                    id="ryd-bar-container"
-                    style="width: 100%; height: 2px;${colorDislikeStyle}"
-                    >
-                    <div
-                      id="ryd-bar"
-                      style="width: ${widthPercent}%; height: 100%${colorLikeStyle}"
-                      ></div>
+
+        actions.insertAdjacentHTML(
+            "beforeend",
+            `
+                <div class="ryd-tooltip ryd-tooltip-${isNewDesign() ? "new" : "old"}-design" style="width: ${widthPx}px">
+                    <div class="ryd-tooltip-bar-container">
+                        <div id="ryd-bar-container" style="width: 100%; height: 2px;${colorDislikeStyle}">
+                            <div id="ryd-bar" style="width: ${widthPercent}%; height: 100%${colorLikeStyle}"></div>
+                        </div>
+                    </div>
+                    <tp-yt-paper-tooltip position="top" id="ryd-dislike-tooltip" role="tooltip" tabindex="-1">
+                        ${likes.toLocaleString()} / ${dislikes.toLocaleString()} - ${widthPercent.toFixed(1)}%
+                    </tp-yt-paper-tooltip>
                 </div>
-              </div>
-              <tp-yt-paper-tooltip position="top" id="ryd-dislike-tooltip" class="style-scope ytd-sentiment-bar-renderer" role="tooltip" tabindex="-1">
-                <!--css-build:shady-->${tooltipInnerHTML}
-              </tp-yt-paper-tooltip>
-              </div>
-      		`,
+            `,
         );
-
-        if (isNewDesign()) {
-          // Add border between info and comments
-          let descriptionAndActionsElement = document.getElementById("top-row");
-          descriptionAndActionsElement.style.borderBottom =
-            "1px solid var(--yt-spec-10-percent-layer)";
-          descriptionAndActionsElement.style.paddingBottom = "10px";
-
-          // Fix like/dislike ratio bar offset in new UI
-          document.getElementById("actions-inner").style.width = "revert";
-          if (isRoundedDesign()) {
-            document.getElementById("actions").style.flexDirection =
-              "row-reverse";
-          }
-        }
-      } else {
-        document.querySelector(`.ryd-tooltip`).style.width = widthPx + "px";
-        document.getElementById("ryd-bar").style.width = widthPercent + "%";
-        document.querySelector("#ryd-dislike-tooltip > #tooltip").innerHTML =
-          tooltipInnerHTML;
-        if (extConfig.coloredBar) {
-          document.getElementById("ryd-bar-container").style.backgroundColor =
-            getColorFromTheme(false);
-          document.getElementById("ryd-bar").style.backgroundColor =
-            getColorFromTheme(true);
-        }
-      }
     }
-  } else {
-    cLog("removing bar");
-    if (rateBar) {
-      rateBar.parentNode.removeChild(rateBar);
-    }
-  }
 }
 
+function removeLikeDislikeRatioBar() {
+    const rateBar = document.getElementById("ryd-bar-container");
+    if (rateBar) {
+        rateBar.parentNode.removeChild(rateBar);
+    }
+}
+
+if (!isShorts()) {
+    const likes = 1200; 
+    const dislikes = 300; 
+    createLikeDislikeRatioBar(likes, dislikes);
+} else {
+    removeLikeDislikeRatioBar();
+}
+
+function cLog(message) {
+    console.log(`[CustomLog]: ${message}`);
+}
+
+cLog("Initialization complete");
 
 })();
