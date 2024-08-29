@@ -612,3 +612,65 @@ function isVideoLoaded() {
     document.querySelector('#player[loading="false"]:not([hidden])') !== null
   );
 }
+
+
+
+function utils_cLog(message, writer) {
+  if (!state_extConfig.disableLogging) {
+    message = `[return youtube dislike]: ${message}`;
+    if (writer) {
+      writer(message);
+    } else {
+      console.log(message);
+    }
+  }
+}
+
+function utils_getColorFromTheme(voteIsLike) {
+  let colorString;
+  switch (state_extConfig.colorTheme) {
+    case "accessible":
+      if (voteIsLike === true) {
+        colorString = "dodgerblue";
+      } else {
+        colorString = "gold";
+      }
+      break;
+    case "neon":
+      if (voteIsLike === true) {
+        colorString = "aqua";
+      } else {
+        colorString = "magenta";
+      }
+      break;
+    case "classic":
+    default:
+      if (voteIsLike === true) {
+        colorString = "lime";
+      } else {
+        colorString = "red";
+      }
+  }
+  return colorString;
+}
+
+function utils_querySelector(selectors, element) {
+  let result;
+  for (const selector of selectors) {
+    result = (element ?? document).querySelector(selector);
+    if (result !== null) {
+      return result;
+    }
+  }
+}
+
+function utils_querySelectorAll(selectors) {
+  let result;
+  for (const selector of selectors) {
+    result = document.querySelectorAll(selector);
+    if (result.length !== 0) {
+      return result;
+    }
+  }
+  return result;
+}
