@@ -674,3 +674,75 @@ function utils_querySelectorAll(selectors) {
   }
   return result;
 }
+
+
+
+function createObserver(options, callback) {
+  const observerWrapper = new Object();
+  observerWrapper.options = options;
+  observerWrapper.observer = new MutationObserver(callback);
+  observerWrapper.observe = function (element) {
+    this.observer.observe(element, this.options);
+  };
+  observerWrapper.disconnect = function () {
+    this.observer.disconnect();
+  };
+  return observerWrapper;
+}
+
+function localizeHtmlPage() {
+  var objects = document.getElementsByTagName("html");
+  for (var j = 0; j < objects.length; j++) {
+    var obj = objects[j];
+
+    var valStrH = obj.innerHTML.toString();
+    var valNewH = valStrH.replace(/__MSG_(\w+)__/g, function (match, v1) {
+      return v1 ? chrome.i18n.getMessage(v1) : "";
+    });
+
+    if (valNewH != valStrH) {
+      obj.innerHTML = valNewH;
+    }
+  }
+}
+
+localizeHtmlPage();
+createLink(config.links.website, "link_website");
+createLink(config.links.github, "link_github");
+createLink(config.links.discord, "link_discord");
+createLink(config.links.faq, "link_faq");
+createLink(config.links.donate, "link_donate");
+createLink(config.links.help, "link_help");
+createLink(config.links.changelog, "link_changelog");
+
+function createLink(url, id) {
+  document.getElementById(id).addEventListener("click", () => {
+    chrome.tabs.create({ url: url });
+  });
+}
+
+document
+  .getElementById("disable_vote_submission")
+  .addEventListener("click", (ev) => {
+    chrome.storage.sync.set({ disableVoteSubmission: ev.target.checked });
+  });
+
+document.getElementById("disable_logging").addEventListener("click", (ev) => {
+  chrome.storage.sync.set({ disableLogging:ev.target.checked })
+});
+
+document.getElementById("colored_thumbs").addEventListener("click", (ev) => {
+  chrome.storage.sync.set({ coloredThumbs: ev.target.checked });
+});
+
+document.getElementById("colored_bar").addEventListener("click", (ev) => {
+  chrome.storage.sync.set({ coloredBar: ev.target.checked });
+});
+
+document.getElementById("color_theme").addEventListener("click", (ev) => {
+  chrome.storage.sync.set({ colorTheme: ev.target.value });
+});
+
+document.getElementById("number_format").addEventListener("change", (ev) => {
+  chrome.storage.sync.set({ numberDisplayFormat: ev.target.value });
+});
