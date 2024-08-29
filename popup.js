@@ -111,5 +111,77 @@ function createDislikeTextContainer() {
 function checkForSignInButton() {
     return !!document.querySelector("a[href^='https://accounts.google.com/ServiceLogin']");
 }
+        if (!isShorts()) {
+      if (!rateBar && !isMobile()) {
+        let colorLikeStyle = "";
+        let colorDislikeStyle = "";
+        if (extConfig.coloredBar) {
+          colorLikeStyle = "; background-color: " + getColorFromTheme(true);
+          colorDislikeStyle = "; background-color: " + getColorFromTheme(false);
+        }
+        let actions =
+          isNewDesign() && getButtons().id === "top-level-buttons-computed"
+            ? getButtons()
+            : document.getElementById("menu-container");
+        (
+          actions ||
+          document.querySelector("ytm-slim-video-action-bar-renderer")
+        ).insertAdjacentHTML(
+          "beforeend",
+          `
+              <div class="ryd-tooltip ryd-tooltip-${isNewDesign() ? "new" : "old"}-design" style="width: ${widthPx}px">
+              <div class="ryd-tooltip-bar-container">
+                <div
+                    id="ryd-bar-container"
+                    style="width: 100%; height: 2px;${colorDislikeStyle}"
+                    >
+                    <div
+                      id="ryd-bar"
+                      style="width: ${widthPercent}%; height: 100%${colorLikeStyle}"
+                      ></div>
+                </div>
+              </div>
+              <tp-yt-paper-tooltip position="top" id="ryd-dislike-tooltip" class="style-scope ytd-sentiment-bar-renderer" role="tooltip" tabindex="-1">
+                <!--css-build:shady-->${tooltipInnerHTML}
+              </tp-yt-paper-tooltip>
+              </div>
+      		`,
+        );
+
+        if (isNewDesign()) {
+          // Add border between info and comments
+          let descriptionAndActionsElement = document.getElementById("top-row");
+          descriptionAndActionsElement.style.borderBottom =
+            "1px solid var(--yt-spec-10-percent-layer)";
+          descriptionAndActionsElement.style.paddingBottom = "10px";
+
+          // Fix like/dislike ratio bar offset in new UI
+          document.getElementById("actions-inner").style.width = "revert";
+          if (isRoundedDesign()) {
+            document.getElementById("actions").style.flexDirection =
+              "row-reverse";
+          }
+        }
+      } else {
+        document.querySelector(`.ryd-tooltip`).style.width = widthPx + "px";
+        document.getElementById("ryd-bar").style.width = widthPercent + "%";
+        document.querySelector("#ryd-dislike-tooltip > #tooltip").innerHTML =
+          tooltipInnerHTML;
+        if (extConfig.coloredBar) {
+          document.getElementById("ryd-bar-container").style.backgroundColor =
+            getColorFromTheme(false);
+          document.getElementById("ryd-bar").style.backgroundColor =
+            getColorFromTheme(true);
+        }
+      }
+    }
+  } else {
+    cLog("removing bar");
+    if (rateBar) {
+      rateBar.parentNode.removeChild(rateBar);
+    }
+  }
+}
+
 
 })();
