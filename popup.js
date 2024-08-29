@@ -406,23 +406,6 @@ async function setState(storedData) {
   }
 }
 
-async function setInitialState() {
-  await setState(storedData);
-}
-
-async function initExtConfig() {
-  initializeDisableVoteSubmission();
-  initializeDisableLogging();
-  initializeColoredThumbs();
-  initializeColoredBar();
-  initializeColorTheme();
-  initializeNumberDisplayFormat();
-  initializeTooltipPercentage();
-  initializeTooltipPercentageMode();
-  initializeNumberDisplayReformatLikes();
-  await initializeSelectors();
-}
-
 async function initializeSelectors() {
   console.log("initializing selectors");
   let result = await fetch(`${apiUrl}/configs/selectors`, {
@@ -575,4 +558,57 @@ function getNumberFormatter(optionSelect) {
     compactDisplay: formatterCompactDisplay,
   });
   return formatter;
+}
+
+
+
+function utils_localize(localeString) {
+  return chrome.i18n.getMessage(localeString);
+}
+
+function utils_getBrowser() {
+  if (typeof chrome !== "undefined" && typeof chrome.runtime !== "undefined") {
+    return chrome;
+  } else if (typeof browser !== "undefined" && typeof browser.runtime !== "undefined") {
+    return browser;
+  } else {
+    console.log("browser is not supported");
+    return false;
+  }
+}
+
+function utils_getVideoId(url) {
+  const urlObject = new URL(url);
+  const pathname = urlObject.pathname;
+  if (pathname.startsWith("/clip")) {
+    return (document.querySelector("meta[itemprop='videoId']") || document.querySelector("meta[itemprop='identifier']"))
+      .content;
+  } else {
+    if (pathname.startsWith("/shorts")) {
+      return pathname.slice(8);
+    }
+    return urlObject.searchParams.get("v");
+  }
+}
+
+function utils_isInViewport(element) {
+  const rect = element.getBoundingClientRect();
+  const height = innerHeight || document.documentElement.clientHeight;
+  const width = innerWidth || document.documentElement.clientWidth;
+  return (
+    !(rect.top == 0 && rect.left == 0 && rect.bottom == 0 && rect.right == 0) &&
+    rect.top >= 0 &&
+    rect.left >= 0 &&
+    rect.bottom <= height &&
+    rect.right <= width
+  );
+}
+
+function isVideoLoaded() {
+  const videoId = utils_getVideoId(window.location.href);
+  return (
+    document.querySelector(`ytd-watch-grid[video-id='${videoId}']`) !== null ||
+    document.querySelector(`ytd-watch-flexy[video-id='${videoId}']`) !== null ||
+    document.querySelector('#player[loading="false"]:not([hidden])') !== null
+  );
 }
