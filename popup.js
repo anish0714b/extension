@@ -507,3 +507,72 @@ function initializeTooltipPercentage() {
   });
 }
 
+
+
+
+function initializeTooltipPercentageMode() {
+  getBrowser().storage.sync.get(["tooltipPercentageMode"], (res) => {
+    if (res.tooltipPercentageMode === undefined) {
+      getBrowser().storage.sync.set({ tooltipPercentageMode: "dash_like" });
+    } else {
+      state_extConfig.tooltipPercentageMode = res.tooltipPercentageMode;
+    }
+  });
+}
+
+function initializeNumberDisplayReformatLikes() {
+  getBrowser().storage.sync.get(["numberDisplayReformatLikes"], (res) => {
+    if (res.numberDisplayReformatLikes === undefined) {
+      getBrowser().storage.sync.set({ numberDisplayReformatLikes: false });
+    } else {
+      state_extConfig.numberDisplayReformatLikes = res.numberDisplayReformatLikes;
+    }
+  });
+}
+
+function utils_numberFormat(numberState) {
+  return getNumberFormatter(extConfig.numberDisplayFormat).format(numberState);
+}
+
+function getNumberFormatter(optionSelect) {
+  let userLocales;
+  if (document.documentElement.lang) {
+    userLocales = document.documentElement.lang;
+  } else if (navigator.language) {
+    userLocales = navigator.language;
+  } else {
+    try {
+      userLocales = new URL(
+        Array.from(document.querySelectorAll("head > link[rel='search']"))
+          ?.find((n) => n?.getAttribute("href")?.includes("?locale="))
+          ?.getAttribute("href"),
+      )?.searchParams?.get("locale");
+    } catch {
+      utils_cLog("Cannot find browser locale. Use en as default for number formatting.");
+      userLocales = "en";
+    }
+  }
+
+  let formatterNotation;
+  let formatterCompactDisplay;
+  switch (optionSelect) {
+    case "compactLong":
+      formatterNotation = "compact";
+      formatterCompactDisplay = "long";
+      break;
+    case "standard":
+      formatterNotation = "standard";
+      formatterCompactDisplay = "short";
+      break;
+    case "compactShort":
+    default:
+      formatterNotation = "compact";
+      formatterCompactDisplay = "short";
+  }
+
+  const formatter = Intl.NumberFormat(userLocales, {
+    notation: formatterNotation,
+    compactDisplay: formatterCompactDisplay,
+  });
+  return formatter;
+}
