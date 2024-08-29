@@ -251,7 +251,6 @@ if (state_isShorts() && !shortsObserver) {
           mutation.target.nodeName === "TP-YT-PAPER-BUTTON" &&
           mutation.target.id === "button"
         ) {
-          // cLog('Short thumb button status changed');
           if (mutation.target.getAttribute("aria-pressed") === "true") {
             mutation.target.style.color =
               mutation.target.parentElement.parentElement.id === "like-button"
@@ -269,7 +268,6 @@ if (state_isShorts() && !shortsObserver) {
 }
 
 function state_isLikesDisabled() {
-  // return true if the like button's text doesn't contain any number
   if (state_isMobile()) {
     return /^\D*$/.test(getButtons().children[0].querySelector(".button-renderer-text").innerText);
   }
@@ -305,3 +303,76 @@ function getState(storedData) {
   }
   return { current: NEUTRAL_STATE, previous: storedData.previousState };
 }
+
+
+function setLikes(likesCount) {
+  cLog(`SET likes ${likesCount}`);
+  getLikeTextContainer().innerText = likesCount;
+}
+
+function setDislikes(dislikesCount) {
+  cLog(`SET dislikes ${dislikesCount}`);
+  getDislikeTextContainer()?.removeAttribute("is-empty");
+  if (!state_isLikesDisabled()) {
+    if (state_isMobile()) {
+      getButtons().children[1].querySelector(".button-renderer-text").innerText = dislikesCount;
+      return;
+    }
+    getDislikeTextContainer().innerText = dislikesCount;
+  } else {
+    cLog("likes count disabled by creator");
+    if (state_isMobile()) {
+      getButtons().children[1].querySelector(".button-renderer-text").innerText = localize("TextLikesDisabled");
+      return;
+    }
+    getDislikeTextContainer().innerText = localize("TextLikesDisabled");
+  }
+}
+
+function getLikeCountFromButton() {
+  try {
+    if (state_isShorts()) {
+      return false;
+    }
+
+    let likeButton =
+      getLikeButton().querySelector("yt-formatted-string#text") ?? getLikeButton().querySelector("button");
+
+    let likesStr = likeButton.getAttribute("aria-label").replace(/\D/g, "");
+    return likesStr.length > 0 ? parseInt(likesStr) : false;
+  } catch {
+    return false;
+  }
+}
+
+function processResponse(response, storedData) {
+  const formattedDislike = numberFormat(response.dislikes);
+  setDislikes(formattedDislike);
+  if (state_extConfig.numberDisplayReformatLikes === true) {
+    const nativeLikes = getLikeCountFromButton();
+    if (nativeLikes !== false) {
+      setLikes(numberFormat(nativeLikes));
+    }
+  }
+  storedData.dislikes = parseInt(response.dislikes);
+  storedData.likes = getLikeCountFromButton() || parseInt(response.likes);
+  createRateBar(storedData.likes, storedData.dislikes);
+  if (state_extConfig.coloredThumbs === true) {
+    if (state_isShorts()) {
+      let shortLikeButton = getLikeButton().querySelector("tp-yt-paper-button#button");
+      let shortDislikeButton = getDislikeButton().querySelector("tp-yt-paper-button#button");
+      if (shortLikeButton.getAttribute("aria-pressed") === "true") {
+        shortLikeButton.style.color = getColorFromTheme(true);
+      }
+      if (shortDislikeButton.getAttribute("aria-pressed") === "true") {
+        shortDislikeButton.style.color = getColorFromTheme(false);
+      }
+      shortsObserver.observe(shortLikeButton);
+      shortsObserver.observe(shortDislikeButton);
+    } else {
+      getLikeButton().style.color = getColorFromTheme(true);
+      getDislikeButton().style.color = getColorFromTheme(false);
+    }
+  }
+}
+
