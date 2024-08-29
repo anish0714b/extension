@@ -447,3 +447,63 @@ function initializeDisableVoteSubmission() {
   });
 }
 
+function initializeDisableLogging() {
+  getBrowser().storage.sync.get(["disableLogging"], (res) => {
+    if (res.disableLogging === undefined) {
+      getBrowser().storage.sync.set({ disableLogging: true });
+    } else {
+      state_extConfig.disableLogging = res.disableLogging;
+    }
+  });
+}
+
+function initializeColoredThumbs() {
+  getBrowser().storage.sync.get(["coloredThumbs"], (res) => {
+    if (res.coloredThumbs === undefined) {
+      getBrowser().storage.sync.set({ coloredThumbs: false });
+    } else {
+      state_extConfig.coloredThumbs = res.coloredThumbs;
+    }
+  });
+}
+
+function initializeColoredBar() {
+  getBrowser().storage.sync.get(["coloredBar"], (res) => {
+    if (res.coloredBar === undefined) {
+      getBrowser().storage.sync.set({ coloredBar: false });
+    } else {
+      state_extConfig.coloredBar = res.coloredBar;
+    }
+  });
+}
+
+function initializeColorTheme() {
+  getBrowser().storage.sync.get(["colorTheme"], (res) => {
+    if (res.colorTheme === undefined) {
+      getBrowser().storage.sync.set({ colorTheme: false });
+    } else {
+      state_extConfig.colorTheme = res.colorTheme;
+    }
+  });
+}
+
+function initializeNumberDisplayFormat() {
+  getBrowser().storage.sync.get(["numberDisplayFormat"], (res) => {
+    if (res.numberDisplayFormat === undefined) {
+      getBrowser().storage.sync.set({ numberDisplayFormat: "compactShort" });
+    } else {
+      state_extConfig.numberDisplayFormat = res.numberDisplayFormat;
+    }
+  });
+}
+
+function initializeTooltipPercentage() {
+  getBrowser().storage.sync.get(["showTooltipPercentage"], (res) => {
+    if (res.showTooltipPercentage === undefined) {
+      getBrowser().storage.sync.set({ showTooltipPercentage: false });
+    } else {
+      state_extConfig.showTooltipPercentage = res.showTooltipPercentage;
+    }
+  });
+}
+
