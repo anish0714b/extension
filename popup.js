@@ -168,3 +168,69 @@ function cLog(message) {
 cLog("Initialization complete");
 
 })();
+
+
+const LIKED_STATE = "LIKED_STATE";
+const DISLIKED_STATE = "DISLIKED_STATE";
+const NEUTRAL_STATE = "NEUTRAL_STATE";
+
+let state_extConfig = {
+  disableVoteSubmission: false,
+  disableLogging: false,
+  coloredThumbs: false,
+  coloredBar: false,
+  colorTheme: "classic",
+  numberDisplayFormat: "compactShort",
+  showTooltipPercentage: false,
+  tooltipPercentageMode: "dash_like",
+  numberDisplayReformatLikes: false,
+  selectors: {
+    dislikeTextContainer: [],
+    likeTextContainer: [],
+    buttons: {
+      shorts: {
+        mobile: [],
+        desktop: [],
+      },
+      regular: {
+        mobile: [],
+        desktopMenu: [],
+        desktopNoMenu: [],
+      },
+      likeButton: {
+        segmented: [],
+        segmentedGetButtons: [],
+        notSegmented: [],
+      },
+      dislikeButton: {
+        segmented: [],
+        segmentedGetButtons: [],
+        notSegmented: [],
+      },
+    },
+    menuContainer: [],
+    roundedDesign: [],
+  },
+};
+
+let storedData = {
+  likes: 0,
+  dislikes: 0,
+  previousState: NEUTRAL_STATE,
+};
+
+function state_isMobile() {
+  return location.hostname == "m.youtube.com";
+}
+
+function state_isShorts() {
+  return location.pathname.startsWith("/shorts");
+}
+
+function state_isNewDesign() {
+  return document.getElementById("comment-teaser") !== null;
+}
+
+function state_isRoundedDesign() {
+  return querySelector(state_extConfig.selectors.roundedDesign) !== null;
+}
